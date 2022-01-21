@@ -13,6 +13,12 @@ public class TeamPlayer : MonoBehaviour
             var enemy = other.attachedRigidbody.GetComponent<EnemyPlayer>();
             enemy.GetHitByEnemy(this);
         }
+
+        if(other.CompareTag("Fireball"))
+        {
+            other.gameObject.SetActive(false);
+            GetHit();
+        }
     }
 
     public bool GetHit(int damage = 1)

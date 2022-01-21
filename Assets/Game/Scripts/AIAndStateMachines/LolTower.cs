@@ -24,6 +24,9 @@ public class LolTower : MonoBehaviour
 
     private static Collider[] overlapResults = new Collider[100];
 
+    [SerializeField] private float attackCooldown = 2f;
+    [SerializeField] private LineRenderer lineRenderer;
+
     private void OnDrawGizmos()
     {
         var col = Gizmos.color;
@@ -49,6 +52,7 @@ public class LolTower : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        lineRenderer.SetPosition(0, towerTop.position);
         StartCoroutine(RunMachine());
     }
 
@@ -118,20 +122,35 @@ public class LolTower : MonoBehaviour
     {
         //State Enter
         float timer = 0f;
-        float attackCooldown = 1f;
         while (currentState == TowerStates.AttackMinion)
         {
+            if(currentTargetMinion != null)
+               lineRenderer.SetPosition(1, currentTargetMinion.transform.position);
+
             timer += Time.deltaTime;
+
+            //if (timer >= attackCooldown)
+            //{
+            //    if (currentTargetMinion.GetHit())
+            //    {
+            //        currentTargetMinion = null;
+            //        currentState = TowerStates.SeekTarget;
+            //        continue;
+            //    }
+            //    timer -= attackCooldown;
+            //}
 
             if (timer >= attackCooldown)
             {
-                if (currentTargetMinion.GetHit())
-                {
-                    currentTargetMinion = null;
-                    currentState = TowerStates.SeekTarget;
-                    continue;
-                }
+                LaunchFireball(currentTargetMinion.transform);
                 timer -= attackCooldown;
+            }
+
+            if (currentTargetMinion.IsDead)
+            {
+                currentTargetMinion = null;
+                currentState = TowerStates.SeekTarget;
+                continue;
             }
 
             var sqrDistanceToTarget = (currentTargetMinion.transform.position - transform.position).sqrMagnitude;
@@ -153,20 +172,28 @@ public class LolTower : MonoBehaviour
     {
         //State Enter
         float timer = 0f;
-        float attackCooldown = 1f;
         while (currentState == TowerStates.AttackEnemy)
         {
+            if (currentTargetPlayer != null)
+                lineRenderer.SetPosition(1, currentTargetPlayer.transform.position);
+
             //State Loop
             timer += Time.deltaTime;
 
+            //if (timer >= attackCooldown)
+            //{
+            //    if (currentTargetPlayer.GetHit())
+            //    {
+            //        currentTargetPlayer = null;
+            //        currentState = TowerStates.SeekTarget;
+            //        continue;
+            //    }
+            //    timer -= attackCooldown;
+            //}
+
             if (timer >= attackCooldown)
             {
-                if (currentTargetPlayer.GetHit())
-                {
-                    currentTargetPlayer = null;
-                    currentState = TowerStates.SeekTarget;
-                    continue;
-                }
+                LaunchFireball(currentTargetPlayer.transform);
                 timer -= attackCooldown;
             }
 
@@ -182,6 +209,14 @@ public class LolTower : MonoBehaviour
         }
         //State Exit
 
+    }
+
+    private void LaunchFireball(Transform target)
+    {
+        var fireballClone = FireballPool.Instance.GetObject();
+        fireballClone.transform.position = towerTop.position;
+        fireballClone.SetTarget(target);
+        fireballClone.gameObject.SetActive(true);
     }
 
     public void Complain(TeamPlayer teamPlayer)

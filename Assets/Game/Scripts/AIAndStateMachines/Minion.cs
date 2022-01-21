@@ -31,7 +31,20 @@ public class Minion : MonoBehaviour
         //transform.position += nav.velocity * Time.deltaTime;
     }
 
-    public bool GetHit(int damage = 1)
+    //public bool GetHit(int damage = 1)
+    //{
+    //    IsDead = false;
+    //    currentHealth -= damage;
+    //    if (currentHealth <= 0)
+    //    {
+    //        IsDead = true;
+    //        Die();
+    //    }
+    //
+    //    return IsDead;
+    //}
+
+    private void GetHit(int damage = 1)
     {
         IsDead = false;
         currentHealth -= damage;
@@ -40,12 +53,19 @@ public class Minion : MonoBehaviour
             IsDead = true;
             Die();
         }
-
-        return IsDead;
     }
 
     private void Die()
     {
         Destroy(gameObject);
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.CompareTag("Fireball"))
+        {
+            other.gameObject.SetActive(false);
+            GetHit();
+        }
     }
 }
